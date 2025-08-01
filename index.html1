@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>单词管理与听写系统</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
+    header { background: #4CAF50; color: white; padding: 10px; text-align: center; }
+    nav { display: flex; justify-content: center; background: #333; }
+    nav button { background: none; border: none; color: white; padding: 14px 20px; cursor: pointer; font-size: 16px; }
+    nav button:hover { background: #575757; }
+    .container { padding: 20px; }
+    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f2f2f2; }
+    .correct { color: green; }
+    .incorrect { color: red; }
+  </style>
+</head>
+<body>
+  <header><h1>单词管理与听写系统</h1></header>
+  <nav>
+    <button onclick="showSection('manage')">单词管理</button>
+    <button onclick="showSection('quiz')">听写统计</button>
+  </nav>
+  <div class="container">
+    <section id="manage">
+      <h2>单词管理</h2>
+      <label>选择日期: <select id="dateSelect"></select></label>
+      <table id="wordTable">
+        <thead><tr><th>单词</th><th>中文释义</th><th>拼写</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section id="quiz" class="hidden">
+      <h2>听写统计</h2>
+      <button onclick="showErrors()">查看错词</button>
+      <ul id="errorList"></ul>
+    </section>
+  </div>
+  <script>
+    // 全部 39 个单词数据
+    const data = {
+      '2025-08-01': [
+        {word:'instinctively', meaning:'本能地', correct:true},
+        {word:'sheer', meaning:'完全的；陡峭的；绝对的', correct:true},
+        {word:'trait', meaning:'特征；性格特质', correct:true},
+        {word:'triumph', meaning:'胜利；成功', correct:true},
+        {word:'execute', meaning:'执行；处决', correct:true},
+        {word:'handiwork', meaning:'手工艺品；杰作', correct:true},
+        {word:'accomplished', meaning:'熟练的；有成就的', correct:true},
+        {word:'plausibly', meaning:'貌似合理地；可信地', correct:true},
+        {word:'proliferation', meaning:'扩散；激增', correct:false},
+        {word:'repertoire', meaning:'全部节目；全部本领', correct:true},
+        {word:'recur', meaning:'再次发生；重现', correct:true},
+        {word:'sake', meaning:'缘故；目的', correct:true},
+        {word:'pose', meaning:'摆姿势；提出（问题）', correct:true},
+        {word:'whatsoever', meaning:'无论什么；丝毫', correct:true},
+        {word:'spectacular', meaning:'壮观的；惊人的', correct:true},
+        {word:'encounter', meaning:'遭遇；邂逅；冲突', correct:true},
+        {word:'daub', meaning:'涂抹', correct:true},
+        {word:'disregard', meaning:'忽视；不理会', correct:true},
+        {word:'awkward', meaning:'尴尬的；笨拙的', correct:true},
+        {word:'penetrate', meaning:'穿透；渗入', correct:true},
+        {word:'recesses', meaning:'深处；隐秘处', correct:true},
+        {word:'nook', meaning:'角落；隐蔽处', correct:true},
+        {word:'cranny', meaning:'缝隙；裂缝', correct:true},
+        {word:'notion', meaning:'观念；看法', correct:true},
+        {word:'ample', meaning:'充足的；丰富的', correct:true},
+        {word:'stark', meaning:'严酷的；鲜明的', correct:true},
+        {word:'track', meaning:'追踪；踪迹', correct:true},
+        {word:'stalk', meaning:'悄悄跟踪；高视阔步地走', correct:true},
+        {word:'strive', meaning:'努力；奋斗', correct:true},
+        {word:'diligently', meaning:'勤奋地；孜孜不倦地', correct:true},
+        {word:'evocative', meaning:'唤起感情的；激发共鸣的', correct:true},
+        {word:'provocative', meaning:'挑衅性的；激起争论的', correct:true},
+        {word:'studious', meaning:'好学的；勤奋的', correct:true},
+        {word:'promoted', meaning:'被提升的；被提倡的', correct:true},
+        {word:'brought about', meaning:'引起；导致', correct:true},
+        {word:'interfered with', meaning:'干扰；妨碍', correct:true},
+        {word:'mitigate', meaning:'缓解；减轻', correct:true},
+        {word:'simply', meaning:'仅仅；简单地', correct:true},
+        {word:'would they not', meaning:'他们难道不会...吗？', correct:true}
+      ]
+    };
+
+    function init() {
+      const select = document.getElementById('dateSelect');
+      for (let date in data) {
+        const opt = document.createElement('option');
+        opt.value = date; opt.textContent = date;
+        select.appendChild(opt);
+      }
+      select.onchange = loadWords;
+      if (select.options.length) loadWords();
+    }
+
+    function loadWords() {
+      const date = document.getElementById('dateSelect').value;
+      const tbody = document.querySelector('#wordTable tbody');
+      tbody.innerHTML = '';
+      data[date].forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${item.word}</td>
+                        <td>${item.meaning}</td>
+                        <td class="${item.correct?'correct':'incorrect'}">
+                          ${item.correct?'✅':'❌'}
+                        </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function showSection(sec) {
+      document.getElementById('manage').classList.toggle('hidden', sec!=='manage');
+      document.getElementById('quiz').classList.toggle('hidden', sec!=='quiz');
+    }
+
+    function showErrors() {
+      const errors = JSON.parse(localStorage.getItem('errors')||'[]');
+      const ul = document.getElementById('errorList');
+      ul.innerHTML = '';
+      errors.forEach(e => {
+        const li = document.createElement('li');
+        li.textContent = `${e.word}: ${e.attempt}`;
+        ul.appendChild(li);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>

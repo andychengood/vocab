@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>单词管理与听写系统</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
+    header { background: #4CAF50; color: white; padding: 10px; text-align: center; }
+    nav { display: flex; justify-content: center; background: #333; }
+    nav button { background: none; border: none; color: white; padding: 14px 20px; cursor: pointer; font-size: 16px; }
+    nav button:hover { background: #575757; }
+    .container { padding: 20px; }
+    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f2f2f2; }
+    .correct { color: green; }
+    .incorrect { color: red; }
+  </style>
+</head>
+<body>
+  <header><h1>单词管理与听写系统</h1></header>
+  <nav>
+    <button onclick="showSection('manage')">单词管理</button>
+    <button onclick="showSection('quiz')">听写统计</button>
+  </nav>
+  <div class="container">
+    <section id="manage">
+      <h2>单词管理</h2>
+      <label>选择日期: <select id="dateSelect"></select></label>
+      <table id="wordTable">
+        <thead><tr><th>单词</th><th>中文释义</th><th>拼写</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <section id="quiz" class="hidden">
+      <h2>听写统计</h2>
+      <button onclick="showErrors()">查看错词</button>
+      <ul id="errorList"></ul>
+    </section>
+  </div>
+  <script>
+    // 示例数据，可扩展
+    const data = {
+      '2025-08-01': [
+        {word:'instinctively',meaning:'本能地',correct:true},
+        {word:'sheer',meaning:'完全的；陡峭的；绝对的',correct:true},
+        {word:'trait',meaning:'特征；性格特质',correct:true},
+        {word:'triumph',meaning:'胜利；成功',correct:true},
+        {word:'execute',meaning:'执行；处决',correct:true},
+        {word:'handiwork',meaning:'手工艺品；杰作',correct:true},
+        {word:'accomplished',meaning:'熟练的；有成就的',correct:true},
+        {word:'plausibly',meaning:'貌似合理地；可信地',correct:true},
+        {word:'proliferation',meaning:'扩散；激增',correct:false},
+        {word:'repertoire',meaning:'全部节目；全部本领',correct:true}
+      ]
+      // 后续可添加 '2025-08-02': [...] 等
+    };
+    function init() {
+      const select = document.getElementById('dateSelect');
+      for (let date in data) {
+        const opt = document.createElement('option'); opt.value=date; opt.textContent=date;
+        select.appendChild(opt);
+      }
+      select.onchange = loadWords;
+      if (select.options.length) loadWords();
+    }
+    function loadWords() {
+      const date = document.getElementById('dateSelect').value;
+      const tbody = document.querySelector('#wordTable tbody'); tbody.innerHTML='';
+      data[date].forEach(item => {
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${item.word}</td><td>${item.meaning}</td><td class="${item.correct?'correct':'incorrect'}">${item.correct?'✅':'❌'}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    function showSection(sec) {
+      document.getElementById('manage').classList.toggle('hidden', sec!=='manage');
+      document.getElementById('quiz').classList.toggle('hidden', sec!=='quiz');
+    }
+    function showErrors() {
+      const errors = JSON.parse(localStorage.getItem('errors')||'[]');
+      const ul = document.getElementById('errorList'); ul.innerHTML='';
+      errors.forEach(e=>{ const li=document.createElement('li'); li.textContent=`${e.word}: ${e.attempt}`; ul.appendChild(li); });
+    }
+    // 模拟记录错误示例，实际听写页面可 push 到 localStorage.errors
+    // localStorage.setItem('errors', JSON.stringify([{word:'proliferation',attempt:'proliteration'}]));
+    init();
+  </script>
+</body>
+</html>

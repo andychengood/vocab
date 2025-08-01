@@ -4,14 +4,13 @@
 <style>
 body{font-family:sans-serif;margin:0;background:#f5f5f5}
 header{background:#4caf50;color:#fff;text-align:center;padding:12px}
-nav{display:flex;background:#333}nav button{flex:1;padding:10px;color:#fff;border:none;background:none;cursor:pointer}nav button:hover{background:#575757}
+nav{display:flex;background:#333}nav button{flex:1;padding:10px;border:none;color:#fff;background:none;cursor:pointer}nav button:hover{background:#575757}
 .container{padding:18px}section{display:none}.show{display:block}
 table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:8px}th{background:#eee}
 textarea{width:100%;height:60px;margin-top:8px}.in{width:70%;padding:4px;margin-top:4px}
 .btn{margin:8px 0;padding:6px 14px}.play{cursor:pointer;margin-right:6px}.del{color:red;cursor:pointer}
 ul{padding-left:20px;color:red}
-</style>
-</head><body>
+</style></head><body>
 <header><h1>每日单词 · 管理 / 默写 / 听写 / 复习</h1></header>
 
 <nav>
@@ -22,15 +21,15 @@ ul{padding-left:20px;color:red}
 </nav>
 
 <div class="container">
-<!-- ===== 管理 ===== -->
+<!-- 管理 -->
 <section id="m" class="show">
   日期 <input type="date" id="date"><br>
-  <textarea id="bulk" placeholder="粘贴多个单词，用空格/逗号/换行分隔"></textarea>
+  <textarea id="bulk" placeholder="粘贴多个单词，可随意用 空格 / 回车 / 标点 分隔"></textarea>
   <button id="add" class="btn">批量添加</button>
   <table><thead><tr><th>单词</th><th>中文释义</th><th>备注</th><th>默写</th><th>听写</th><th>删</th></tr></thead><tbody id="tb"></tbody></table>
 </section>
 
-<!-- ===== 默写 ===== -->
+<!-- 默写 -->
 <section id="d"><h2>默写练习</h2>
   日期 <input type="date" id="dDay">
   <button id="dGo" class="btn">开始</button>
@@ -39,7 +38,7 @@ ul{padding-left:20px;color:red}
   <div id="dRes"></div>
 </section>
 
-<!-- ===== 听写 ===== -->
+<!-- 听写 -->
 <section id="l"><h2>听写练习</h2>
   日期 <input type="date" id="lDay">
   <button id="lGo" class="btn">开始</button>
@@ -48,7 +47,7 @@ ul{padding-left:20px;color:red}
   <div id="lRes"></div>
 </section>
 
-<!-- ===== 复习 ===== -->
+<!-- 复习 -->
 <section id="r"><h2>复习系统</h2>
   <button id="rLoad" class="btn">加载错词</button>
   <div id="rForm"></div>
@@ -58,8 +57,8 @@ ul{padding-left:20px;color:red}
 </div>
 
 <script>
-/* --- 数据持久化 --- */
-const KEY='vocabByDate', KREV='reviewWords';
+/* ---------- 本地存储 ---------- */
+const KEY='vocabByDate', KR='reviewWords';
 let DATA=JSON.parse(localStorage.getItem(KEY)||'{}');
 const today=new Date().toISOString().slice(0,10);
 ['date','dDay','lDay'].forEach(id=>document.getElementById(id).value=today);
@@ -68,32 +67,25 @@ function save(){localStorage.setItem(KEY,JSON.stringify(DATA));}
 const $=id=>document.getElementById(id);
 const list=d=>DATA[d];
 
-/* --- 工具 --- */
-const SPLIT=/[\\s,，、；;「」“”\"'\\u00A0]+/;
+/* ---------- 工具 ---------- */
+const englishWords = str => (str.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g)||[]);  // 提取纯英文单词
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}};
-/* Shanbay -> Google Fallback */
 async function cn(word){
-  try{
-    const j=await (await fetch(`https://api.shanbay.com/bdc/search/?word=${encodeURIComponent(word)}`)).json();
-    if(j.data?.cn_definition?.defn) return j.data.cn_definition.defn;
-  }catch{}
-  try{
-    const u=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(word)}`;
-    const arr=await (await fetch(u)).json();
-    return arr[0][0][0];
-  }catch{}
+  try{const j=await(await fetch(`https://api.shanbay.com/bdc/search/?word=${encodeURIComponent(word)}`)).json();
+      if(j.data?.cn_definition?.defn) return j.data.cn_definition.defn;}catch{}
+  try{const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(word)}`;
+      const a=await (await fetch(url)).json(); return a[0][0][0]; }catch{}
   return '';
 }
-/* SpeechSynthesis 发音 */
 function speak(w){const u=new SpeechSynthesisUtterance(w);u.voice=speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang))||null;speechSynthesis.speak(u);}
 
-/* --- 标签切换 --- */
+/* ---------- 标签切换 ---------- */
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('section').forEach(s=>s.classList.remove('show'));$(b.dataset.tab).classList.add('show');});
 
-/* --- 表格渲染 --- */
+/* ---------- 表格 ---------- */
 function draw(){
- const d=$('date').value; if(!DATA[d]) DATA[d]=[];
- const body=$('tb'); body.innerHTML='';
+ const d=$('date').value;if(!DATA[d]) DATA[d]=[];
+ const body=$('tb');body.innerHTML='';
  list(d).forEach((it,i)=>{
   body.insertAdjacentHTML('beforeend',`<tr>
     <td>${it.w}</td><td>${it.c}</td>
@@ -106,31 +98,30 @@ function draw(){
 }
 $('date').onchange=draw; draw();
 
-/* --- 批量添加 --- */
+/* ---------- 批量添加 ---------- */
 $('add').onclick=async()=>{
- const d=$('date').value ,raw=$('bulk').value.trim();
- if(!raw) return; $('bulk').value='';
- const arr=raw.split(SPLIT).filter(Boolean);
- for(const w of arr){
+ const d=$('date').value, raw=$('bulk').value.trim();$('bulk').value='';
+ if(!raw) return;
+ for(const w of englishWords(raw)){
    if(list(d).some(x=>x.w===w)) continue;
    let c=await cn(w);
-   if(!c) { c=prompt(`"${w}" 的中文释义：`,''); if(!c) continue; }
+   if(!c){c=prompt(`"${w}" 的中文:`,'');if(!c)continue;}
    list(d).push({w,c});
  }
  save(); draw();
 };
 
-/* --- 默写 --- */
+/* ---------- 默写 ---------- */
 $('dGo').onclick=()=>{const d=$('dDay').value,arr=[...list(d)];shuffle(arr);$('dForm').innerHTML='';arr.forEach((it,i)=>$('dForm').insertAdjacentHTML('beforeend',`${it.c}<input id=dx${i} class=in><br>`));$('dForm').dataset.arr=JSON.stringify(arr);}
 $('dChk').onclick=()=>{const arr=JSON.parse($('dForm').dataset.arr||'[]'),d=$('dDay').value;let ok=0,err=[];arr.forEach((it,i)=>{const a=$('dx'+i).value.trim().toLowerCase();const real=list(d).find(x=>x.w===it.w);if(a===it.w.toLowerCase()){ok++;real.d=true}else{real.d=false;err.push(it)}});save();draw();addR(err);$('dRes').innerHTML=`正确 ${ok}/${arr.length}${err.length?'<ul>'+err.map(e=>'<li>'+e.w+'</li>').join('')+'</ul>':''}`}
 
-/* --- 听写 --- */
+/* ---------- 听写 ---------- */
 $('lGo').onclick=()=>{const d=$('lDay').value,arr=[...list(d)];shuffle(arr);$('lForm').innerHTML='';arr.forEach((it,i)=>$('lForm').insertAdjacentHTML('beforeend',`<button class=play onclick="speak('${it.w}')">🔊</button><input id=lx${i} class=in><br>`));$('lForm').dataset.arr=JSON.stringify(arr);}
 $('lChk').onclick=()=>{const arr=JSON.parse($('lForm').dataset.arr||'[]'),d=$('lDay').value;let ok=0,err=[];arr.forEach((it,i)=>{const a=$('lx'+i).value.trim().toLowerCase();const real=list(d).find(x=>x.w===it.w);if(a===it.w.toLowerCase()){ok++;real.l=true}else{real.l=false;err.push(it)}});save();draw();addR(err);$('lRes').innerHTML=`正确 ${ok}/${arr.length}${err.length?'<ul>'+err.map(e=>'<li>'+e.w+'</li>').join('')+'</ul>':''}`}
 
-/* --- 复习 --- */
-function addR(e){if(!e.length)return;const r=JSON.parse(localStorage.getItem(KREV)||'[]');localStorage.setItem(KREV,JSON.stringify(r.concat(e)));}
-$('rLoad').onclick=()=>{const r=JSON.parse(localStorage.getItem(KREV)||'[]');$('rForm').innerHTML='';r.slice(0,20).forEach((it,i)=>$('rForm').insertAdjacentHTML('beforeend',`<button class=play onclick="speak('${it.w}')">🔊</button>${it.c}<input id=rx${i} class=in><br>`));}
-$('rChk').onclick=()=>{let r=JSON.parse(localStorage.getItem(KREV)||'[]');const grp=r.slice(0,20),rest=r.slice(20),left=[];grp.forEach((it,i)=>{const a=$('rx'+i).value.trim().toLowerCase();if(a!==it.w.toLowerCase())left.push(it)});localStorage.setItem(KREV,JSON.stringify(left.concat(rest)));$('rRes').innerText='剩余 '+(left.concat(rest)).length;}
+/* ---------- 复习 ---------- */
+function addR(e){if(!e.length)return;const r=JSON.parse(localStorage.getItem(KR)||'[]');localStorage.setItem(KR,JSON.stringify(r.concat(e)));}
+$('rLoad').onclick=()=>{const r=JSON.parse(localStorage.getItem(KR)||'[]');$('rForm').innerHTML='';r.slice(0,20).forEach((it,i)=>$('rForm').insertAdjacentHTML('beforeend',`<button class=play onclick="speak('${it.w}')">🔊</button>${it.c}<input id=rx${i} class=in><br>`));}
+$('rChk').onclick=()=>{let r=JSON.parse(localStorage.getItem(KR)||'[]');const grp=r.slice(0,20),rest=r.slice(20),left=[];grp.forEach((it,i)=>{const a=$('rx'+i).value.trim().toLowerCase();if(a!==it.w.toLowerCase())left.push(it)});localStorage.setItem(KR,JSON.stringify(left.concat(rest)));$('rRes').innerText='剩余 '+(left.concat(rest)).length;}
 </script>
 </body></html>

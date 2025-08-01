@@ -1,199 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>单词管理与默写&听写系统</title>
+  <title>每日单词 · 管理 / 默写 / 听写 / 复习</title>
   <style>
     body{font-family:sans-serif;margin:0;padding:0;background:#f9f9f9}
-    header{background:#4CAF50;color:white;padding:10px;text-align:center}
+    header{background:#4CAF50;color:#fff;text-align:center;padding:10px}
     nav{display:flex;justify-content:center;background:#333}
-    nav button{flex:1;color:white;background:none;border:none;padding:10px;cursor:pointer}
+    nav button{flex:1;padding:10px;border:none;color:#fff;background:none;cursor:pointer}
     nav button:hover{background:#575757}
     .container{padding:20px}
-    section{display:none}
-    section.active{display:block}
+    section{display:none}.active{display:block}
     table{width:100%;border-collapse:collapse;margin-top:10px}
     th,td{border:1px solid #ddd;padding:8px;text-align:left}
     th{background:#f2f2f2}
     textarea{width:100%;height:60px;margin-top:10px}
     .input-word{width:70%;padding:4px;margin-top:4px}
     .btn{margin:10px 0;padding:6px 12px;cursor:pointer}
-    .play-btn{margin-right:8px;cursor:pointer}
-    .delete-btn{color:red;cursor:pointer}
+    .play{margin-right:6px;cursor:pointer}
+    .del{color:red;cursor:pointer}
     ul{padding-left:20px;color:red}
   </style>
 </head>
 <body>
-  <header><h1>单词管理与默写&听写系统</h1></header>
-  <nav>
-    <button data-sec="words">单词管理</button>
-    <button data-sec="dictate">默写练习</button>
-    <button data-sec="listen">听写练习</button>
-    <button data-sec="review">复习系统</button>
-  </nav>
-  <div class="container">
-    <section id="words" class="active">
-      <h2>单词管理</h2>
-      <textarea id="bulkInput" placeholder="用空格分隔英文单词"></textarea>
-      <button id="bulkAddBtn" class="btn">批量添加单词</button>
-      <table>
-        <thead><tr><th>单词</th><th>释义</th><th>备注</th><th>默写</th><th>听写</th><th>删除</th></tr></thead>
-        <tbody id="manageBody"></tbody>
-      </table>
-    </section>
-    <section id="dictate">
-      <h2>默写练习</h2>
-      <button id="startDictBtn" class="btn">开始默写</button>
-      <div id="dictForm"></div>
-      <button id="gradeDictBtn" class="btn">批改默写</button>
-      <div id="dictResult"></div>
-    </section>
-    <section id="listen">
-      <h2>听写练习</h2>
-      <button id="startListenBtn" class="btn">开始听写</button>
-      <div id="listenForm"></div>
-      <button id="gradeListenBtn" class="btn">批改听写</button>
-      <div id="listenResult"></div>
-    </section>
-    <section id="review">
-      <h2>复习系统</h2>
-      <button id="loadReviewBtn" class="btn">加载错词</button>
-      <div id="reviewForm"></div>
-      <button id="gradeReviewBtn" class="btn">批改复习</button>
-      <div id="reviewResult"></div>
-    </section>
-  </div>
+<header><h1>每日单词 · 管理 / 默写 / 听写 / 复习</h1></header>
+<nav>
+  <button data-sec="manage">单词管理</button>
+  <button data-sec="dict">默写练习</button>
+  <button data-sec="listen">听写练习</button>
+  <button data-sec="review">复习系统</button>
+</nav>
+
+<div class="container">
+  <!-- 管理 -->
+  <section id="manage" class="active">
+    <h2>单词管理</h2>
+    <label>日期:
+      <input type="date" id="datePicker"/>
+    </label>
+    <textarea id="bulkInput" placeholder="用空格分隔英文单词"></textarea>
+    <button id="bulkBtn" class="btn">批量添加单词</button>
+    <table>
+      <thead>
+        <tr><th>单词</th><th>中文释义</th><th>备注</th><th>默写</th><th>听写</th><th>删除</th></tr>
+      </thead>
+      <tbody id="manageBody"></tbody>
+    </table>
+  </section>
+
+  <!-- 默写 -->
+  <section id="dict">
+    <h2>默写练习</h2>
+    <label>选择日期:
+      <input type="date" id="dictDate"/>
+    </label>
+    <button id="startDict" class="btn">开始默写</button>
+    <div id="dictForm"></div>
+    <button id="gradeDict" class="btn">批改默写</button>
+    <div id="dictResult"></div>
+  </section>
+
+  <!-- 听写 -->
+  <section id="listen">
+    <h2>听写练习</h2>
+    <label>选择日期:
+      <input type="date" id="listenDate"/>
+    </label>
+    <button id="startListen" class="btn">开始听写</button>
+    <div id="listenForm"></div>
+    <button id="gradeListen" class="btn">批改听写</button>
+    <div id="listenResult"></div>
+  </section>
+
+  <!-- 复习 -->
+  <section id="review">
+    <h2>复习系统</h2>
+    <button id="loadReview" class="btn">加载错词</button>
+    <div id="reviewForm"></div>
+    <button id="gradeReview" class="btn">批改复习</button>
+    <div id="reviewResult"></div>
+  </section>
+</div>
+
 <script>
-  // 本地数据持久化键
-  const KEY_DATA='vocabData',KEY_REVIEW='reviewList';
-  // 初始化数据
-  let data = JSON.parse(localStorage.getItem(KEY_DATA) || 'null');
-  if (!data) { data = {'2025-08-01':[]}; localStorage.setItem(KEY_DATA, JSON.stringify(data)); }
-  function saveData() { localStorage.setItem(KEY_DATA, JSON.stringify(data)); }
-  function getList() { return data['2025-08-01']; }
+/* ---------- 持久化 ---------- */
+const KEY_DATA='vocab_by_date', KEY_REVIEW='review_list';
+let data = JSON.parse(localStorage.getItem(KEY_DATA)||'{}');
+function save(){ localStorage.setItem(KEY_DATA,JSON.stringify(data)); }
+function listBy(date){ return data[date] || []; }
 
-  // 切换模块
-  document.querySelectorAll('nav button').forEach(btn => btn.onclick = () => {
-    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-    document.getElementById(btn.dataset.sec).classList.add('active');
+/* ---------- 工具 ---------- */
+function $(id){ return document.getElementById(id); }
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+async function zh(word){
+  const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(word)}`;
+  try{const r=await fetch(url);const j=await r.json();return j[0][0][0]}catch{return '';}
+}
+function tts(word){
+  const u=`https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(word)}`;
+  fetch(u).then(r=>r.blob()).then(b=>{
+    const url=URL.createObjectURL(b); const a=new Audio(url); a.onended=()=>URL.revokeObjectURL(url); a.play();
+  }).catch(()=>{ const s=new SpeechSynthesisUtterance(word); speechSynthesis.speak(s); });
+}
+/* ---------- 切换 ---------- */
+document.querySelectorAll('nav button').forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  $(btn.dataset.sec).classList.add('active');
+});
+/* ---------- 日期默认值 ---------- */
+const today = new Date().toISOString().slice(0,10);
+['datePicker','dictDate','listenDate'].forEach(id=>$(id).value=today);
+if(!data[today]) data[today]=[];
+save();
+
+/* ---------- 管理表 ---------- */
+function renderManage(){
+  const d=$('datePicker').value; if(!data[d]) data[d]=[];
+  const body=$('manageBody'); body.innerHTML='';
+  listBy(d).forEach((it,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${it.word}</td><td>${it.mean}</td>
+      <td contenteditable onblur="data['${d}'][${i}].note=this.innerText;save();">${it.note||''}</td>
+      <td><input type=checkbox ${it.d?'checked':''} onchange="data['${d}'][${i}].d=this.checked;save();"></td>
+      <td><input type=checkbox ${it.l?'checked':''} onchange="data['${d}'][${i}].l=this.checked;save();"></td>
+      <td><span class="del" onclick="data['${d}'].splice(${i},1);save();renderManage();">🗑️</span></td>`;
+    body.appendChild(tr);
   });
+}
+$('datePicker').onchange=renderManage;
+renderManage();
 
-  // Fisher–Yates 随机打乱
-  function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } }
-
-  // 渲染管理表格
-  function renderManage() {
-    const tbody = document.getElementById('manageBody'); tbody.innerHTML = '';
-    getList().forEach((it, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${it.word}</td>
-        <td>${it.meaning}</td>
-        <td contenteditable onblur="it.note=this.innerText; saveData();">${it.note||''}</td>
-        <td><input type="checkbox" ${it.passedDict?'checked':''} onchange="it.passedDict=this.checked; saveData(); changePass('dict', '${it.word}', it.passedDict)"></td>
-        <td><input type="checkbox" ${it.passedListen?'checked':''} onchange="it.passedListen=this.checked; saveData(); changePass('listen', '${it.word}', it.passedListen)"></td>
-        <td><span class="delete-btn" onclick="getList().splice(${i},1); saveData(); renderManage();">🗑️</span></td>`;
-      tbody.appendChild(tr);
-    });
+/* ---------- 批量添加 ---------- */
+$('bulkBtn').onclick=async()=>{
+  const d=$('datePicker').value; const txt=$('bulkInput').value.trim();
+  if(!txt) return;
+  const ws=txt.split(/\\s+/);
+  for(const w of ws){
+    if(listBy(d).some(x=>x.word===w)) continue;
+    let mean=await zh(w);
+    if(!mean) {mean=prompt(`\"${w}\" 中文？`,''); if(!mean) continue;}
+    listBy(d).push({word:w,mean});
   }
+  save(); renderManage(); $('bulkInput').value='';
+};
 
-  // 批量添加：自动获取中文释义
-  async function fetchZh(word) {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(word)}`;
-    try { const res = await fetch(url); const arr = await res.json(); return arr[0][0][0] || ''; } catch { return ''; }
-  }
-  document.getElementById('bulkAddBtn').onclick = async () => {
-    const btn = document.getElementById('bulkAddBtn'); btn.disabled = true; btn.innerText = '添加中...';
-    const words = document.getElementById('bulkInput').value.trim().split(/\s+/);
-    for (const w of words) {
-      if (getList().some(it => it.word === w)) continue;
-      let meaning = await fetchZh(w);
-      if (!meaning) {
-        meaning = prompt(`未能自动解析 "${w}" 的中文释义，请输入:`, '');
-        if (!meaning) continue;
-      }
-      getList().push({word: w, meaning, passedDict: false, passedListen: false});
-    }
-    saveData(); renderManage();
-    btn.innerText = '批量添加单词'; btn.disabled = false;
-  };
+/* ---------- 默写 ---------- */
+$('startDict').onclick=()=>{
+  const d=$('dictDate').value, arr=[...listBy(d)]; shuffle(arr);
+  const f=$('dictForm'); f.innerHTML=''; arr.forEach((it,i)=>f.innerHTML+=`<div>${it.mean}<input id="d${i}" class="input-word"></div>`); f.dataset.l=JSON.stringify(arr);
+};
+$('gradeDict').onclick=()=>{
+  const arr=JSON.parse($('dictForm').dataset.l||'[]'), d=$('dictDate').value, errs=[];
+  let ok=0; arr.forEach((it,i)=>{const a=$('d'+i).value.trim().toLowerCase(); if(a===it.word.toLowerCase()){ok++; it.d=true;}else{it.d=false; errs.push(it);} });
+  save(); renderManage(); addReview(errs);
+  $('dictResult').innerHTML=`<p>正确 ${ok}/${arr.length}</p>`+(errs.length?'<ul>'+errs.map(e=>`<li>${e.word}</li>`).join('')+'</ul>':'');
+};
 
-  // startDict
-  document.getElementById('startDictBtn').onclick = () => {
-    const list = [...getList()]; shuffle(list);
-    const form = document.getElementById('dictForm'); form.innerHTML = '';
-    list.forEach((it, i) => form.innerHTML += `<div><label>${it.meaning}</label> <input id="d${i}" class="input-word"></div>`);
-    form.dataset.list = JSON.stringify(list);
-  };
-  // gradeDict
-  document.getElementById('gradeDictBtn').onclick = () => {
-    const list = JSON.parse(document.getElementById('dictForm').dataset.list || '[]');
-    let ok = 0, errs = [];
-    list.forEach((it, i) => {
-      const ans = document.getElementById('d'+i).value.trim().toLowerCase();
-      if (ans === it.word.toLowerCase()) ok++; else errs.push({word: it.word, attempt: ans});
-      data['2025-08-01'].find(x => x.word === it.word).passedDict = (ans === it.word.toLowerCase());
-    });
-    saveData(); renderManage(); addToReview(errs);
-    let html = `<p>正确 ${ok}/${list.length}</p>`;
-    if (errs.length) html += '<ul>' + errs.map(e => `<li>${e.word}: 你的 "${e.attempt}"</li>`).join('') + '</ul>';
-    document.getElementById('dictResult').innerHTML = html;
-  };
+/* ---------- 听写 ---------- */
+$('startListen').onclick=()=>{
+  const d=$('listenDate').value, arr=[...listBy(d)]; shuffle(arr);
+  const f=$('listenForm'); f.innerHTML=''; arr.forEach((it,i)=>f.innerHTML+=`<div><button class="play" onclick="tts('${it.word}')">🔊</button><input id="l${i}" class="input-word"></div>`); f.dataset.l=JSON.stringify(arr);
+};
+$('gradeListen').onclick=()=>{
+  const arr=JSON.parse($('listenForm').dataset.l||'[]'), d=$('listenDate').value, errs=[]; let ok=0;
+  arr.forEach((it,i)=>{const a=$('l'+i).value.trim().toLowerCase(); if(a===it.word.toLowerCase()){ok++; it.l=true;}else{it.l=false; errs.push(it);} });
+  save(); renderManage(); addReview(errs);
+  $('listenResult').innerHTML=`<p>正确 ${ok}/${arr.length}</p>`+(errs.length?'<ul>'+errs.map(e=>`<li>${e.word}</li>`).join('')+'</ul>':'');
+};
 
-  // startListen
-  document.getElementById('startListenBtn').onclick = () => {
-    const list = [...getList()]; shuffle(list);
-    const form = document.getElementById('listenForm'); form.innerHTML = '';
-    list.forEach((it, i) => form.innerHTML += `<div><button class="play-btn" onclick="speak('${it.word}')">🔊</button> <input id="l${i}" class="input-word"></div>`);
-    form.dataset.list = JSON.stringify(list);
-  };
-  // gradeListen
-  document.getElementById('gradeListenBtn').onclick = () => {
-    const list = JSON.parse(document.getElementById('listenForm').dataset.list || '[]');
-    let ok = 0, errs = [];
-    list.forEach((it, i) => {
-      const ans = document.getElementById('l'+i).value.trim().toLowerCase();
-      if (ans === it.word.toLowerCase()) ok++; else errs.push({word: it.word, attempt: ans});
-      data['2025-08-01'].find(x => x.word === it.word).passedListen = (ans === it.word.toLowerCase());
-    });
-    saveData(); renderManage(); addToReview(errs);
-    let html = `<p>正确 ${ok}/${list.length}</p>`;
-    if (errs.length) html += '<ul>' + errs.map(e => `<li>${e.word}: 你的 "${e.attempt}"</li>`).join('') + '</ul>';
-    document.getElementById('listenResult').innerHTML = html;
-  };
-
-  // 添加到复习
-  function addToReview(arr) {
-    const lst = JSON.parse(localStorage.getItem(KEY_REVIEW) || '[]');
-    localStorage.setItem(KEY_REVIEW, JSON.stringify(lst.concat(arr)));
-  }
-
-  document.getElementById('loadReviewBtn').onclick = () => {
-    const lst = JSON.parse(localStorage.getItem(KEY_REVIEW) || '[]');
-    const form = document.getElementById('reviewForm'); form.innerHTML = '';
-    lst.slice(0, 20).forEach((it, i) => form.innerHTML += `<div><button class="play-btn" onclick="speak('${it.word}')">🔊</button> ${it.meaning} <input id="r${i}" class="input-word"></div>`);
-  };
-  document.getElementById('gradeReviewBtn').onclick = () => {
-    let lst = JSON.parse(localStorage.getItem(KEY_REVIEW) || '[]');
-    const group = lst.slice(0, 20), rem = lst.slice(20), errs = [];
-    group.forEach((it, i) => {
-      const ans = document.getElementById('r'+i).value.trim().toLowerCase();
-      if (ans !== it.word.toLowerCase()) errs.push(it);
-    });
-    localStorage.setItem(KEY_REVIEW, JSON.stringify(errs.concat(rem)));
-    document.getElementById('reviewResult').innerText = `剩余 ${errs.concat(rem).length} 词`;
-  };
-
-  // Google TTS
-  function speak(text) {
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(text)}`;
-    const audio = new Audio(url);
-    audio.play();
-  }
-
-  // 初始化
-  window.onload = () => renderManage();
+/* ---------- 复习 ---------- */
+function addReview(errs){ if(!errs.length) return;
+  const lst=JSON.parse(localStorage.getItem(KEY_REVIEW)||'[]'); localStorage.setItem(KEY_REVIEW,JSON.stringify(lst.concat(errs)));
+}
+$('loadReview').onclick=()=>{
+  const lst=JSON.parse(localStorage.getItem(KEY_REVIEW)||'[]'); const f=$('reviewForm'); f.innerHTML='';
+  lst.slice(0,20).forEach((it,i)=>f.innerHTML+=`<div><button class="play" onclick="tts('${it.word}')">🔊</button>${it.mean}<input id="r${i}" class="input-word"></div>`);
+};
+$('gradeReview').onclick=()=>{
+  let lst=JSON.parse(localStorage.getItem(KEY_REVIEW)||'[]');
+  const grp=lst.slice(0,20), remain=lst.slice(20), errs=[];
+  grp.forEach((it,i)=>{const a=$('r'+i).value.trim().toLowerCase(); if(a!==it.word.toLowerCase()) errs.push(it);});
+  localStorage.setItem(KEY_REVIEW,JSON.stringify(errs.concat(remain)));
+  $('reviewResult').innerText=`剩余 ${errs.concat(remain).length} 词`;
+};
 </script>
 </body>
 </html>

@@ -1,124 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>每日单词 · 管理 / 默写 / 听写 / 复习</title>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>每日单词</title>
 <style>
-  body{font-family:sans-serif;margin:0;background:#f9f9f9}
-  header{background:#4CAF50;color:#fff;padding:12px;text-align:center}
-  nav{display:flex;background:#333}
-  nav button{flex:1;padding:10px;border:none;background:none;color:#fff;cursor:pointer}
-  nav button:hover{background:#575757}
-  .container{padding:20px}
-  section{display:none}.active{display:block}
-  table{width:100%;border-collapse:collapse;margin-top:10px}
-  th,td{border:1px solid #ccc;padding:8px;text-align:left}
-  th{background:#f2f2f2}
-  textarea{width:100%;height:60px;margin-top:10px}
-  .input-word{width:70%;padding:4px;margin-top:4px}
-  .btn{margin:10px 0;padding:6px 14px;cursor:pointer}
-  .play{margin-right:6px;cursor:pointer}
-  .del{color:red;cursor:pointer}
-  ul{padding-left:20px;color:red}
-</style>
-</head>
+ body{font-family:sans-serif;margin:0;background:#f5f5f5}
+ header{background:#4caf50;color:#fff;text-align:center;padding:12px}
+ nav{display:flex;background:#333} nav button{flex:1;padding:10px;color:#fff;border:none;background:none;cursor:pointer}
+ nav button:hover{background:#575757}
+ .box{padding:18px} section{display:none}.show{display:block}
+ table{width:100%;border-collapse:collapse;margin-top:12px}
+ th,td{border:1px solid #ccc;padding:8px;text-align:left}
+ th{background:#eee} textarea{width:100%;height:60px;margin-top:8px}
+ .in{width:70%;padding:4px} .btn{margin:8px 0;padding:6px 14px}
+ .play{cursor:pointer;margin-right:6px} .del{cursor:pointer;color:red}
+</style></head>
 <body>
 <header><h1>每日单词 · 管理 / 默写 / 听写 / 复习</h1></header>
-
 <nav>
-  <button data-sec="manage">单词管理</button>
-  <button data-sec="dict">默写练习</button>
-  <button data-sec="listen">听写练习</button>
-  <button data-sec="review">复习系统</button>
+ <button data-tab="m">单词管理</button>
+ <button data-tab="d">默写练习</button>
+ <button data-tab="l">听写练习</button>
+ <button data-tab="r">复习系统</button>
 </nav>
 
-<div class="container">
-  <!-- 管理 -->
-  <section id="manage" class="active">
-    <h2>单词管理</h2>
-    <label>日期: <input type="date" id="datePicker"></label>
-    <textarea id="bulkInput" placeholder="将多个英文单词贴在这里，用空格分隔（普通空格或 键盘插入的中文空格都可）"></textarea>
-    <button id="bulkBtn" class="btn">批量添加单词</button>
-    <table>
-      <thead><tr><th>单词</th><th>中文释义</th><th>备注</th><th>默写</th><th>听写</th><th>删除</th></tr></thead>
-      <tbody id="manageBody"></tbody>
-    </table>
-  </section>
+<div class="box">
 
-  <!-- 默写 -->
-  <section id="dict">
-    <h2>默写练习</h2>
-    <label>选择日期: <input type="date" id="dictDate"></label>
-    <button id="startDict" class="btn">开始默写</button>
-    <div id="dictForm"></div>
-    <button id="gradeDict" class="btn">批改默写</button>
-    <div id="dictResult"></div>
-  </section>
+<!-- 管理 -->
+<section id="m" class="show">
+ <h2>单词管理</h2>
+ 日期：<input type="date" id="date">
+ <textarea id="bulk" placeholder="在此输入单词，用空格隔开"></textarea>
+ <button id="add" class="btn">批量添加</button>
+ <table><thead><tr><th>单词</th><th>中文释义</th><th>备注</th><th>默写</th><th>听写</th><th>删</th></tr></thead>
+ <tbody id="table"></tbody></table>
+</section>
 
-  <!-- 听写 -->
-  <section id="listen">
-    <h2>听写练习</h2>
-    <label>选择日期: <input type="date" id="listenDate"></label>
-    <button id="startListen" class="btn">开始听写</button>
-    <div id="listenForm"></div>
-    <button id="gradeListen" class="btn">批改听写</button>
-    <div id="listenResult"></div>
-  </section>
+<!-- 默写 -->
+<section id="d">
+ <h2>默写练习</h2>
+ 日期：<input type="date" id="dDate">
+ <button id="dStart" class="btn">开始</button>
+ <div id="dForm"></div>
+ <button id="dGrade" class="btn">批改</button>
+ <div id="dRes"></div>
+</section>
 
-  <!-- 复习 -->
-  <section id="review">
-    <h2>复习系统</h2>
-    <button id="loadReview" class="btn">加载错词</button>
-    <div id="reviewForm"></div>
-    <button id="gradeReview" class="btn">批改复习</button>
-    <div id="reviewResult"></div>
-  </section>
+<!-- 听写 -->
+<section id="l">
+ <h2>听写练习</h2>
+ 日期：<input type="date" id="lDate">
+ <button id="lStart" class="btn">开始</button>
+ <div id="lForm"></div>
+ <button id="lGrade" class="btn">批改</button>
+ <div id="lRes"></div>
+</section>
+
+<!-- 复习 -->
+<section id="r">
+ <h2>复习系统</h2>
+ <button id="rLoad" class="btn">加载错词</button>
+ <div id="rForm"></div>
+ <button id="rGrade" class="btn">批改</button>
+ <div id="rRes"></div>
+</section>
+
 </div>
 
 <script>
-/* ============ 常量与持久化 ============ */
-const KEY_DATA   = 'vocab_by_date';
-const KEY_REVIEW = 'review_words';
-let  data = JSON.parse(localStorage.getItem(KEY_DATA)||'{}');
-function save(){ localStorage.setItem(KEY_DATA, JSON.stringify(data));}
-function wordsOf(d){ return data[d] || []; }
-
-/* ============ 工具函数 ============ */
-const $ = id => document.getElementById(id);
-function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }}
-
-/* Google Translate (中文释义) */
-async function zh(word){
-  try{
-    const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(word)}`;
-    const j=await (await fetch(url)).json();
-    return j[0][0][0] || '';
-  }catch{ return ''; }
-}
-
-/* iOS/桌面都可出的真人发音：优先 Youdao MP3，自动回退系统 voice */
-function speak(w){
-  const mp3=`https://dict.youdao.com/dictvoice?type=2&audio=${encodeURIComponent(w)}`;
-  const audio=new Audio(mp3);
-  audio.onerror=()=>{          // 若被墙或失败，退回 SpeechSynthesis
-    let v=speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang));
-    const u=new SpeechSynthesisUtterance(w); u.voice=v||null; speechSynthesis.speak(u);
-  };
-  audio.play();
-}
-
-/* ============ 页面初始化 ============ */
+/* === 基础数据 === */
+const KEY="vocabByDate",KEY_R="reviewWords";
+let DATA=JSON.parse(localStorage.getItem(KEY)||'{}');
 const today=new Date().toISOString().slice(0,10);
-['datePicker','dictDate','listenDate'].forEach(id=>$(id).value=today);
-if(!data[today]) data[today]=[];
-save();
+['date','dDate','lDate'].forEach(id=>document.getElementById(id).value=today);
+if(!DATA[today]){DATA[today]=[]} save();
 
-/* 标签切换 */
-document.querySelectorAll('nav button').forEach(btn=>btn.onclick=()=>{
-  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
-  $(btn.dataset.sec).classList.add('active');
-});
+/* === 工具 === */
+const $=id=>document.getElementById(id);
+const shuffle=arr=>{for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}};
+const list=d=>DATA[d];
 
-/* 渲染管理表格 */
-function renderMana
+/* 页签切换 */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('section').forEach(s=>s.classList.remove('show'));$(b.dataset.tab).classList.add('show');});
+
+/* 渲染表 */
+function draw(){
+ const d=$('date').value, body=$('table'); body.innerHTML='';
+ list(d).forEach((it,i)=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${it.w}</td><td>${it.c}</td>
+   <td contenteditable onblur="list('${d}')[${i}].n=this.innerText;save();">${it.n||''}</td>
+   <td><input type=checkbox ${it.d?'checked':''} onchange="list('${d}')[${i}].d=this.checked;save();"></td>
+   <td><input type=checkbox ${it.l?'checked':''} onchange="list('${d}')[${i}].l=this.checked;save();"></td>
+   <td><span class=del onclick="list('${d}').splice(${i},1);save();draw();">🗑️</span></td>`;
+  body.appendChild(tr);
+ });
+}
+$('date').onchange=draw; draw();
+
+/* 保存 */
+function save(){localStorage.setItem(KEY,JSON.stringify(DATA));}
+
+/* 批量添加 */
+$('add').onclick=()=>{
+ const d=$('date').value; const raw=$('bulk').value.trim();
+ const words=raw.split(/[\\s\\u00A0]+/); $('bulk').value='';
+ words.forEach(w=>{
+  if(!w||list(d).some(x=>x.w===w))return;
+  let c=prompt(`请输入 "${w}" 的中文释义:`,'');
+  if(!c)return;
+  list(d).push({w,c});
+ });
+ save(); draw();
+}
+
+/* 发音（纯系统 Voice，确保任何网络都能播） */
+function speak(w){
+ const u=new SpeechSynthesisUtterance(w);
+ const v=speechSynthesis.getVoices().find(v=>/^en/i.test(v.lang))||null;
+ u.voice=v; u.rate=1; u.pitch=1; speechSynthesis.speak(u);
+}
+
+/* 默写 */
+$('dStart').onclick=()=>{const d=$('dDate').value,arr=[...list(d)];shuffle(arr);const f=$('dForm');f.innerHTML='';arr.forEach((it,i)=>f.innerHTML+=`${it.c}<input id=d${i} class=in><br>`);f.dataset.arr=JSON.stringify(arr);}
+$('dGrade').onclick=()=>{const arr=JSON.parse($('dForm').dataset.arr||'[]'),d=$('dDate').value;let ok=0,err=[];arr.forEach((it,i)=>{const a=$('d'+i).value.trim().toLowerCase();const real=list(d).find(x=>x.w===it.w);if(a===it.w.toLowerCase()){ok++;real.d=true}else{real.d=false;err.push(it)}});save();draw();addR(err);$('dRes').innerHTML=`正确 ${ok}/${arr.length}${err.length?'<ul>'+err.map(e=>'<li>'+e.w+'</li>').join('')+'</ul>':''}`}
+
+/* 听写 */
+$('lStart').onclick=()=>{const d=$('lDate').value,arr=[...list(d)];shuffle(arr);const f=$('lForm');f.innerHTML='';arr.forEach((it,i)=>f.innerHTML+=`<button class=play onclick="speak('${it.w}')">🔊</button><input id=l${i} class=in><br>`);f.dataset.arr=JSON.stringify(arr);}
+$('lGrade').onclick=()=>{const arr=JSON.parse($('lForm').dataset.arr||'[]'),d=$('lDate').value;let ok=0,err=[];arr.forEach((it,i)=>{const a=$('l'+i).value.trim().toLowerCase();const real=list(d).find(x=>x.w===it.w);if(a===it.w.toLowerCase()){ok++;real.l=true}else{real.l=false;err.push(it)}});save();draw();addR(err);$('lRes').innerHTML=`正确 ${ok}/${arr.length}${err.length?'<ul>'+err.map(e=>'<li>'+e.w+'</li>').join('')+'</ul>':''}`}
+
+/* 复习 */
+function addR(arr){if(!arr.length)return;const r=JSON.parse(localStorage.getItem(KEY_R)||'[]');localStorage.setItem(KEY_R,JSON.stringify(r.concat(arr))); }
+$('rLoad').onclick=()=>{const r=JSON.parse(localStorage.getItem(KEY_R)||'[]');const f=$('rForm');f.innerHTML='';r.slice(0,20).forEach((it,i)=>f.innerHTML+=`<button class=play onclick="speak('${it.w}')">🔊</button>${it.c}<input id=r${i} class=in><br>`);}
+$('rGrade').onclick=()=>{let r=JSON.parse(localStorage.getItem(KEY_R)||'[]');const grp=r.slice(0,20),rest=r.slice(20),left=[];grp.forEach((it,i)=>{const a=$('r'+i).value.trim().toLowerCase();if(a!==it.w.toLowerCase())left.push(it)});localStorage.setItem(KEY_R,JSON.stringify(left.concat(rest)));$('rRes').innerText='剩余 '+(left.concat(rest)).length+' 词';}
+</script>
+</body>
+</html>
